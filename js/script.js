@@ -1,6 +1,7 @@
 $(function () { // Same as document.addEventListener("DOMContentLoaded"...
+  console.log("DOM fully loaded and parsed");
 
-  // Same as document.querySelector("#navbarToggle").addEventListener("blur",...
+  // Ensure navbar toggle behavior
   $("#navbarToggle").blur(function (event) {
     var screenWidth = window.innerWidth;
     if (screenWidth < 768) {
@@ -10,11 +11,13 @@ $(function () { // Same as document.addEventListener("DOMContentLoaded"...
 
   // Add event listener for Specials tile
   $("#specialsTile").click(function () {
+    console.log("Specials tile clicked");
     loadRandomCategory();
   });
 
   // Add event listener for restaurant logo to go back to the home page
   $("#restaurantLogo").click(function () {
+    console.log("Restaurant logo clicked");
     loadHomePage();
   });
 });
@@ -24,12 +27,10 @@ $(function () { // Same as document.addEventListener("DOMContentLoaded"...
 var dc = {};
 
 var homeHtmlUrl = "snippets/home-snippet.html";
-var allCategoriesUrl =
-  "https://coursera-jhu-default-rtdb.firebaseio.com/categories.json";
+var allCategoriesUrl = "https://coursera-jhu-default-rtdb.firebaseio.com/categories.json";
 var categoriesTitleHtml = "snippets/categories-title-snippet.html";
 var categoryHtml = "snippets/category-snippet.html";
-var menuItemsUrl =
-  "https://coursera-jhu-default-rtdb.firebaseio.com/menu_items/";
+var menuItemsUrl = "https://coursera-jhu-default-rtdb.firebaseio.com/menu_items/";
 var menuItemsTitleHtml = "snippets/menu-items-title.html";
 var menuItemHtml = "snippets/menu-item.html";
 
@@ -50,19 +51,16 @@ var showLoading = function (selector) {
 // with propValue in given 'string'
 var insertProperty = function (string, propName, propValue) {
   var propToReplace = "{{" + propName + "}}";
-  string = string
-    .replace(new RegExp(propToReplace, "g"), propValue);
+  string = string.replace(new RegExp(propToReplace, "g"), propValue);
   return string;
 };
 
 // Remove the class 'active' from home and switch to Menu button
 var switchMenuToActive = function () {
-  // Remove 'active' from home button
   var classes = document.querySelector("#navHomeButton").className;
   classes = classes.replace(new RegExp("active", "g"), "");
   document.querySelector("#navHomeButton").className = classes;
 
-  // Add 'active' to menu button if not already there
   classes = document.querySelector("#navMenuButton").className;
   if (classes.indexOf("active") === -1) {
     classes += " active";
@@ -75,15 +73,12 @@ document.addEventListener("DOMContentLoaded", function (event) {
   showLoading("#main-content");
   $ajaxUtils.sendGetRequest(
     allCategoriesUrl,
-    buildAndShowHomeHTML, 
-    true); 
+    buildAndShowHomeHTML,
+    true
+  );
 });
 
-// Builds HTML for the home page based on categories array
-// returned from the server.
-function buildAndShowHomeHTML (categories) {
-
-  // Load home snippet page
+function buildAndShowHomeHTML(categories) {
   $ajaxUtils.sendGetRequest(
     homeHtmlUrl,
     function (homeHtml) {
@@ -92,10 +87,10 @@ function buildAndShowHomeHTML (categories) {
       var homeHtmlToInsertIntoMainPage = insertProperty(homeHtml, "randomCategoryShortName", "'" + chosenCategoryShortName + "'");
       insertHtml("#main-content", homeHtmlToInsertIntoMainPage);
     },
-    false);
+    false
+  );
 }
 
-// Function to load a random category's menu items
 function loadRandomCategory() {
   showLoading("#main-content");
   $ajaxUtils.sendGetRequest(
@@ -104,43 +99,41 @@ function loadRandomCategory() {
       var chosenCategory = chooseRandomCategory(categories);
       dc.loadMenuItems(chosenCategory.short_name);
     },
-    true);
+    true
+  );
 }
 
-// Function to load the home page
 function loadHomePage() {
   showLoading("#main-content");
   $ajaxUtils.sendGetRequest(
     allCategoriesUrl,
-    buildAndShowHomeHTML, 
-    true);
+    buildAndShowHomeHTML,
+    true
+  );
 }
 
-// Given array of category objects, returns a random category object.
-function chooseRandomCategory (categories) {
+function chooseRandomCategory(categories) {
   var randomArrayIndex = Math.floor(Math.random() * categories.length);
   return categories[randomArrayIndex];
 }
 
-// Load the menu categories view
 dc.loadMenuCategories = function () {
   showLoading("#main-content");
   $ajaxUtils.sendGetRequest(
     allCategoriesUrl,
-    buildAndShowCategoriesHTML);
+    buildAndShowCategoriesHTML
+  );
 };
 
-// Load the menu items view
 dc.loadMenuItems = function (categoryShort) {
   showLoading("#main-content");
   $ajaxUtils.sendGetRequest(
     menuItemsUrl + categoryShort + ".json",
-    buildAndShowMenuItemsHTML);
+    buildAndShowMenuItemsHTML
+  );
 };
 
-// Builds HTML for the categories page based on the data
-// from the server
-function buildAndShowCategoriesHTML (categories) {
+function buildAndShowCategoriesHTML(categories) {
   $ajaxUtils.sendGetRequest(
     categoriesTitleHtml,
     function (categoriesTitleHtml) {
@@ -148,17 +141,16 @@ function buildAndShowCategoriesHTML (categories) {
         categoryHtml,
         function (categoryHtml) {
           switchMenuToActive();
-          var categoriesViewHtml =
-            buildCategoriesViewHtml(categories, categoriesTitleHtml, categoryHtml);
+          var categoriesViewHtml = buildCategoriesViewHtml(categories, categoriesTitleHtml, categoryHtml);
           insertHtml("#main-content", categoriesViewHtml);
         },
-        false);
+        false
+      );
     },
-    false);
+    false
+  );
 }
 
-// Using categories data and snippets html
-// build categories view HTML to be inserted into page
 function buildCategoriesViewHtml(categories, categoriesTitleHtml, categoryHtml) {
   var finalHtml = categoriesTitleHtml;
   finalHtml += "<section class='row'>";
@@ -176,9 +168,7 @@ function buildCategoriesViewHtml(categories, categoriesTitleHtml, categoryHtml) 
   return finalHtml;
 }
 
-// Builds HTML for the single category page based on the data
-// from the server
-function buildAndShowMenuItemsHTML (categoryMenuItems) {
+function buildAndShowMenuItemsHTML(categoryMenuItems) {
   $ajaxUtils.sendGetRequest(
     menuItemsTitleHtml,
     function (menuItemsTitleHtml) {
@@ -186,17 +176,16 @@ function buildAndShowMenuItemsHTML (categoryMenuItems) {
         menuItemHtml,
         function (menuItemHtml) {
           switchMenuToActive();
-          var menuItemsViewHtml =
-            buildMenuItemsViewHtml(categoryMenuItems, menuItemsTitleHtml, menuItemHtml);
+          var menuItemsViewHtml = buildMenuItemsViewHtml(categoryMenuItems, menuItemsTitleHtml, menuItemHtml);
           insertHtml("#main-content", menuItemsViewHtml);
         },
-        false);
+        false
+      );
     },
-    false);
+    false
+  );
 }
 
-// Using category and menu items data and snippets html
-// build menu items view HTML to be inserted into page
 function buildMenuItemsViewHtml(categoryMenuItems, menuItemsTitleHtml, menuItemHtml) {
   menuItemsTitleHtml = insertProperty(menuItemsTitleHtml, "name", categoryMenuItems.category.name);
   menuItemsTitleHtml = insertProperty(menuItemsTitleHtml, "special_instructions", categoryMenuItems.category.special_instructions);
@@ -227,7 +216,6 @@ function buildMenuItemsViewHtml(categoryMenuItems, menuItemsTitleHtml, menuItemH
   return finalHtml;
 }
 
-// Appends price with '$' if price exists
 function insertItemPrice(html, pricePropName, priceValue) {
   if (!priceValue) {
     return insertProperty(html, pricePropName, "");
@@ -238,7 +226,6 @@ function insertItemPrice(html, pricePropName, priceValue) {
   return html;
 }
 
-// Appends portion name in parens if it exists
 function insertItemPortionName(html, portionPropName, portionValue) {
   if (!portionValue) {
     return insertProperty(html, portionPropName, "");
@@ -252,4 +239,3 @@ function insertItemPortionName(html, portionPropName, portionValue) {
 global.$dc = dc;
 
 })(window);
-
