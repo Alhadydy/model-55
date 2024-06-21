@@ -1,9 +1,21 @@
-$(function () {
+$(function () { // Same as document.addEventListener("DOMContentLoaded"...
+
+  // Same as document.querySelector("#navbarToggle").addEventListener("blur",...
   $("#navbarToggle").blur(function (event) {
     var screenWidth = window.innerWidth;
     if (screenWidth < 768) {
       $("#collapsable-nav").collapse('hide');
     }
+  });
+
+  // Add event listener for Specials tile
+  $("#specialsTile").click(function () {
+    loadRandomCategory();
+  });
+
+  // Add event listener for restaurant logo to go back to the home page
+  $("#restaurantLogo").click(function () {
+    loadHomePage();
   });
 });
 
@@ -12,35 +24,45 @@ $(function () {
 var dc = {};
 
 var homeHtmlUrl = "snippets/home-snippet.html";
-var allCategoriesUrl = "https://coursera-jhu-default-rtdb.firebaseio.com/categories.json";
+var allCategoriesUrl =
+  "https://coursera-jhu-default-rtdb.firebaseio.com/categories.json";
 var categoriesTitleHtml = "snippets/categories-title-snippet.html";
 var categoryHtml = "snippets/category-snippet.html";
-var menuItemsUrl = "https://coursera-jhu-default-rtdb.firebaseio.com/menu_items/";
+var menuItemsUrl =
+  "https://coursera-jhu-default-rtdb.firebaseio.com/menu_items/";
 var menuItemsTitleHtml = "snippets/menu-items-title.html";
 var menuItemHtml = "snippets/menu-item.html";
 
+// Convenience function for inserting innerHTML for 'select'
 var insertHtml = function (selector, html) {
   var targetElem = document.querySelector(selector);
   targetElem.innerHTML = html;
 };
 
+// Show loading icon inside element identified by 'selector'.
 var showLoading = function (selector) {
   var html = "<div class='text-center'>";
   html += "<img src='images/ajax-loader.gif'></div>";
   insertHtml(selector, html);
 };
 
+// Return substitute of '{{propName}}'
+// with propValue in given 'string'
 var insertProperty = function (string, propName, propValue) {
   var propToReplace = "{{" + propName + "}}";
-  string = string.replace(new RegExp(propToReplace, "g"), propValue);
+  string = string
+    .replace(new RegExp(propToReplace, "g"), propValue);
   return string;
 };
 
+// Remove the class 'active' from home and switch to Menu button
 var switchMenuToActive = function () {
+  // Remove 'active' from home button
   var classes = document.querySelector("#navHomeButton").className;
   classes = classes.replace(new RegExp("active", "g"), "");
   document.querySelector("#navHomeButton").className = classes;
 
+  // Add 'active' to menu button if not already there
   classes = document.querySelector("#navMenuButton").className;
   if (classes.indexOf("active") === -1) {
     classes += " active";
@@ -48,30 +70,59 @@ var switchMenuToActive = function () {
   }
 };
 
+// On page load (before images or CSS)
 document.addEventListener("DOMContentLoaded", function (event) {
   showLoading("#main-content");
   $ajaxUtils.sendGetRequest(
     allCategoriesUrl,
-    buildAndShowHomeHTML,
-    true);
+    buildAndShowHomeHTML, 
+    true); 
 });
 
-function buildAndShowHomeHTML(categories) {
+// Builds HTML for the home page based on categories array
+// returned from the server.
+function buildAndShowHomeHTML (categories) {
+
+  // Load home snippet page
   $ajaxUtils.sendGetRequest(
     homeHtmlUrl,
     function (homeHtml) {
-      var chosenCategoryShortName = chooseRandomCategory(categories).short_name;
+      var chosenCategory = chooseRandomCategory(categories);
+      var chosenCategoryShortName = chosenCategory.short_name;
       var homeHtmlToInsertIntoMainPage = insertProperty(homeHtml, "randomCategoryShortName", "'" + chosenCategoryShortName + "'");
       insertHtml("#main-content", homeHtmlToInsertIntoMainPage);
     },
     false);
 }
 
-function chooseRandomCategory(categories) {
+// Function to load a random category's menu items
+function loadRandomCategory() {
+  showLoading("#main-content");
+  $ajaxUtils.sendGetRequest(
+    allCategoriesUrl,
+    function (categories) {
+      var chosenCategory = chooseRandomCategory(categories);
+      dc.loadMenuItems(chosenCategory.short_name);
+    },
+    true);
+}
+
+// Function to load the home page
+function loadHomePage() {
+  showLoading("#main-content");
+  $ajaxUtils.sendGetRequest(
+    allCategoriesUrl,
+    buildAndShowHomeHTML, 
+    true);
+}
+
+// Given array of category objects, returns a random category object.
+function chooseRandomCategory (categories) {
   var randomArrayIndex = Math.floor(Math.random() * categories.length);
   return categories[randomArrayIndex];
 }
 
+// Load the menu categories view
 dc.loadMenuCategories = function () {
   showLoading("#main-content");
   $ajaxUtils.sendGetRequest(
@@ -79,6 +130,7 @@ dc.loadMenuCategories = function () {
     buildAndShowCategoriesHTML);
 };
 
+// Load the menu items view
 dc.loadMenuItems = function (categoryShort) {
   showLoading("#main-content");
   $ajaxUtils.sendGetRequest(
@@ -86,7 +138,9 @@ dc.loadMenuItems = function (categoryShort) {
     buildAndShowMenuItemsHTML);
 };
 
-function buildAndShowCategoriesHTML(categories) {
+// Builds HTML for the categories page based on the data
+// from the server
+function buildAndShowCategoriesHTML (categories) {
   $ajaxUtils.sendGetRequest(
     categoriesTitleHtml,
     function (categoriesTitleHtml) {
@@ -94,7 +148,8 @@ function buildAndShowCategoriesHTML(categories) {
         categoryHtml,
         function (categoryHtml) {
           switchMenuToActive();
-          var categoriesViewHtml = buildCategoriesViewHtml(categories, categoriesTitleHtml, categoryHtml);
+          var categoriesViewHtml =
+            buildCategoriesViewHtml(categories, categoriesTitleHtml, categoryHtml);
           insertHtml("#main-content", categoriesViewHtml);
         },
         false);
@@ -102,6 +157,8 @@ function buildAndShowCategoriesHTML(categories) {
     false);
 }
 
+// Using categories data and snippets html
+// build categories view HTML to be inserted into page
 function buildCategoriesViewHtml(categories, categoriesTitleHtml, categoryHtml) {
   var finalHtml = categoriesTitleHtml;
   finalHtml += "<section class='row'>";
@@ -119,7 +176,9 @@ function buildCategoriesViewHtml(categories, categoriesTitleHtml, categoryHtml) 
   return finalHtml;
 }
 
-function buildAndShowMenuItemsHTML(categoryMenuItems) {
+// Builds HTML for the single category page based on the data
+// from the server
+function buildAndShowMenuItemsHTML (categoryMenuItems) {
   $ajaxUtils.sendGetRequest(
     menuItemsTitleHtml,
     function (menuItemsTitleHtml) {
@@ -127,7 +186,8 @@ function buildAndShowMenuItemsHTML(categoryMenuItems) {
         menuItemHtml,
         function (menuItemHtml) {
           switchMenuToActive();
-          var menuItemsViewHtml = buildMenuItemsViewHtml(categoryMenuItems, menuItemsTitleHtml, menuItemHtml);
+          var menuItemsViewHtml =
+            buildMenuItemsViewHtml(categoryMenuItems, menuItemsTitleHtml, menuItemHtml);
           insertHtml("#main-content", menuItemsViewHtml);
         },
         false);
@@ -135,6 +195,8 @@ function buildAndShowMenuItemsHTML(categoryMenuItems) {
     false);
 }
 
+// Using category and menu items data and snippets html
+// build menu items view HTML to be inserted into page
 function buildMenuItemsViewHtml(categoryMenuItems, menuItemsTitleHtml, menuItemHtml) {
   menuItemsTitleHtml = insertProperty(menuItemsTitleHtml, "name", categoryMenuItems.category.name);
   menuItemsTitleHtml = insertProperty(menuItemsTitleHtml, "special_instructions", categoryMenuItems.category.special_instructions);
@@ -165,19 +227,23 @@ function buildMenuItemsViewHtml(categoryMenuItems, menuItemsTitleHtml, menuItemH
   return finalHtml;
 }
 
+// Appends price with '$' if price exists
 function insertItemPrice(html, pricePropName, priceValue) {
   if (!priceValue) {
     return insertProperty(html, pricePropName, "");
   }
+
   priceValue = "$" + priceValue.toFixed(2);
   html = insertProperty(html, pricePropName, priceValue);
   return html;
 }
 
+// Appends portion name in parens if it exists
 function insertItemPortionName(html, portionPropName, portionValue) {
   if (!portionValue) {
     return insertProperty(html, portionPropName, "");
   }
+
   portionValue = "(" + portionValue + ")";
   html = insertProperty(html, portionPropName, portionValue);
   return html;
