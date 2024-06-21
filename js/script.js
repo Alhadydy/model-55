@@ -1,24 +1,9 @@
-$(function () { // Same as document.addEventListener("DOMContentLoaded"...
-  console.log("DOM fully loaded and parsed");
-
-  // Ensure navbar toggle behavior
+$(function () {
   $("#navbarToggle").blur(function (event) {
     var screenWidth = window.innerWidth;
     if (screenWidth < 768) {
       $("#collapsable-nav").collapse('hide');
     }
-  });
-
-  // Add event listener for Specials tile
-  $("#specialsTile").click(function () {
-    console.log("Specials tile clicked");
-    loadRandomCategory();
-  });
-
-  // Add event listener for restaurant logo to go back to the home page
-  $("#restaurantLogo").click(function () {
-    console.log("Restaurant logo clicked");
-    loadHomePage();
   });
 });
 
@@ -34,28 +19,23 @@ var menuItemsUrl = "https://coursera-jhu-default-rtdb.firebaseio.com/menu_items/
 var menuItemsTitleHtml = "snippets/menu-items-title.html";
 var menuItemHtml = "snippets/menu-item.html";
 
-// Convenience function for inserting innerHTML for 'select'
 var insertHtml = function (selector, html) {
   var targetElem = document.querySelector(selector);
   targetElem.innerHTML = html;
 };
 
-// Show loading icon inside element identified by 'selector'.
 var showLoading = function (selector) {
   var html = "<div class='text-center'>";
   html += "<img src='images/ajax-loader.gif'></div>";
   insertHtml(selector, html);
 };
 
-// Return substitute of '{{propName}}'
-// with propValue in given 'string'
 var insertProperty = function (string, propName, propValue) {
   var propToReplace = "{{" + propName + "}}";
   string = string.replace(new RegExp(propToReplace, "g"), propValue);
   return string;
 };
 
-// Remove the class 'active' from home and switch to Menu button
 var switchMenuToActive = function () {
   var classes = document.querySelector("#navHomeButton").className;
   classes = classes.replace(new RegExp("active", "g"), "");
@@ -68,48 +48,23 @@ var switchMenuToActive = function () {
   }
 };
 
-// On page load (before images or CSS)
 document.addEventListener("DOMContentLoaded", function (event) {
   showLoading("#main-content");
   $ajaxUtils.sendGetRequest(
     allCategoriesUrl,
     buildAndShowHomeHTML,
-    true
-  );
+    true);
 });
 
 function buildAndShowHomeHTML(categories) {
   $ajaxUtils.sendGetRequest(
     homeHtmlUrl,
     function (homeHtml) {
-      var chosenCategory = chooseRandomCategory(categories);
-      var chosenCategoryShortName = chosenCategory.short_name;
+      var chosenCategoryShortName = chooseRandomCategory(categories).short_name;
       var homeHtmlToInsertIntoMainPage = insertProperty(homeHtml, "randomCategoryShortName", "'" + chosenCategoryShortName + "'");
       insertHtml("#main-content", homeHtmlToInsertIntoMainPage);
     },
-    false
-  );
-}
-
-function loadRandomCategory() {
-  showLoading("#main-content");
-  $ajaxUtils.sendGetRequest(
-    allCategoriesUrl,
-    function (categories) {
-      var chosenCategory = chooseRandomCategory(categories);
-      dc.loadMenuItems(chosenCategory.short_name);
-    },
-    true
-  );
-}
-
-function loadHomePage() {
-  showLoading("#main-content");
-  $ajaxUtils.sendGetRequest(
-    allCategoriesUrl,
-    buildAndShowHomeHTML,
-    true
-  );
+    false);
 }
 
 function chooseRandomCategory(categories) {
@@ -121,16 +76,14 @@ dc.loadMenuCategories = function () {
   showLoading("#main-content");
   $ajaxUtils.sendGetRequest(
     allCategoriesUrl,
-    buildAndShowCategoriesHTML
-  );
+    buildAndShowCategoriesHTML);
 };
 
 dc.loadMenuItems = function (categoryShort) {
   showLoading("#main-content");
   $ajaxUtils.sendGetRequest(
     menuItemsUrl + categoryShort + ".json",
-    buildAndShowMenuItemsHTML
-  );
+    buildAndShowMenuItemsHTML);
 };
 
 function buildAndShowCategoriesHTML(categories) {
@@ -144,11 +97,9 @@ function buildAndShowCategoriesHTML(categories) {
           var categoriesViewHtml = buildCategoriesViewHtml(categories, categoriesTitleHtml, categoryHtml);
           insertHtml("#main-content", categoriesViewHtml);
         },
-        false
-      );
+        false);
     },
-    false
-  );
+    false);
 }
 
 function buildCategoriesViewHtml(categories, categoriesTitleHtml, categoryHtml) {
@@ -179,11 +130,9 @@ function buildAndShowMenuItemsHTML(categoryMenuItems) {
           var menuItemsViewHtml = buildMenuItemsViewHtml(categoryMenuItems, menuItemsTitleHtml, menuItemHtml);
           insertHtml("#main-content", menuItemsViewHtml);
         },
-        false
-      );
+        false);
     },
-    false
-  );
+    false);
 }
 
 function buildMenuItemsViewHtml(categoryMenuItems, menuItemsTitleHtml, menuItemHtml) {
@@ -220,7 +169,6 @@ function insertItemPrice(html, pricePropName, priceValue) {
   if (!priceValue) {
     return insertProperty(html, pricePropName, "");
   }
-
   priceValue = "$" + priceValue.toFixed(2);
   html = insertProperty(html, pricePropName, priceValue);
   return html;
@@ -230,7 +178,6 @@ function insertItemPortionName(html, portionPropName, portionValue) {
   if (!portionValue) {
     return insertProperty(html, portionPropName, "");
   }
-
   portionValue = "(" + portionValue + ")";
   html = insertProperty(html, portionPropName, portionValue);
   return html;
